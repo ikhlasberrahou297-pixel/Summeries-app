@@ -1,0 +1,20 @@
+{
+  "name": "إدارة مبيعات الملخصات الدراسية",
+  "short_name": "الملخصات",
+  "description": "تطبيق لإدارة مبيعات الملخصات الدراسية ومتابعة الأرباح",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f3ff",
+  "theme_color": "#3b0764",
+  "orientation": "portrait-primary",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

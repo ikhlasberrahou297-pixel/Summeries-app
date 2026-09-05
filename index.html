@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إدارة مبيعات الملخصات الدراسية</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#3b0764">
+<style>
+  :root{
+    --purple-dark:#3b0764;
+    --purple:#7c3aed;
+    --purple-mid:#9333ea;
+    --purple-light:#f3e8ff;
+    --purple-soft:#ede9fe;
+    --white:#ffffff;
+    --gray:#6b7280;
+    --danger:#dc2626;
+    --success:#059669;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Segoe UI', Tahoma, Arial, sans-serif;
+    background:linear-gradient(160deg,#f5f3ff 0%,#ede9fe 100%);
+    color:#1e1b2e;
+    padding-bottom:40px;
+    min-height:100vh;
+  }
+  header{
+    background:linear-gradient(120deg,var(--purple-dark),var(--purple-mid));
+    color:var(--white);
+    padding:26px 20px 0 20px;
+    text-align:center;
+    box-shadow:0 4px 14px rgba(124,58,237,.35);
+  }
+  header h1{font-size:1.6rem;letter-spacing:.5px;}
+  header p{margin-top:6px;font-size:.88rem;opacity:.85;padding-bottom:16px;}
+
+  .tabs{
+    display:flex;
+    max-width:1100px;
+    margin:0 auto;
+    flex-wrap:wrap;
+  }
+  .tab-btn{
+    flex:1;
+    min-width:110px;
+    background:rgba(255,255,255,.08);
+    color:var(--white);
+    border:none;
+    padding:14px 6px;
+    font-size:.95rem;
+    font-weight:700;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+    transition:.2s;
+  }
+  .tab-btn.active{
+    background:var(--white);
+    color:var(--purple-dark);
+    border-bottom:3px solid var(--purple);
+    border-radius:10px 10px 0 0;
+  }
+  .tab-btn:not(.active):hover{background:rgba(255,255,255,.18);}
+
+  .page{display:none;}
+  .page.active{display:block;}
+
+  .container{
+    max-width:1100px;
+    margin:24px auto;
+    padding:0 15px;
+  }
+
+  .dashboard{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:16px;
+    margin-bottom:28px;
+  }
+  .stat-card{
+    background:var(--white);
+    border-radius:14px;
+    padding:22px;
+    text-align:center;
+    box-shadow:0 4px 12px rgba(124,58,237,.12);
+    border-top:4px solid var(--purple);
+    transition:.2s;
+  }
+  .stat-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(124,58,237,.2);}
+  .stat-card.digital{border-top-color:#6366f1;}
+  .stat-card.paper{border-top-color:#a855f7;}
+  .stat-card.grand{border-top-color:var(--success);}
+  .stat-card h3{
+    color:var(--gray);
+    font-size:.9rem;
+    margin-bottom:10px;
+    font-weight:600;
+  }
+  .stat-card p{
+    font-size:1.9rem;
+    font-weight:800;
+    color:var(--purple-dark);
+  }
+  .stat-card.grand p{color:var(--success);}
+
+  .mini-stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:16px;
+    margin-bottom:10px;
+  }
+  .mini-stat{
+    background:var(--white);
+    border-radius:12px;
+    padding:16px;
+    text-align:center;
+    box-shadow:0 2px 8px rgba(124,58,237,.1);
+  }
+  .mini-stat h4{font-size:.82rem;color:var(--gray);margin-bottom:6px;}
+  .mini-stat span{font-size:1.3rem;font-weight:700;color:var(--purple-dark);}
+
+  .form-box{
+    background:var(--white);
+    border-radius:16px;
+    padding:22px;
+    margin-bottom:28px;
+    box-shadow:0 4px 14px rgba(124,58,237,.12);
+  }
+  .form-box h2{
+    color:var(--purple-dark);
+    margin-bottom:16px;
+    font-size:1.25rem;
+    border-bottom:2px solid var(--purple-soft);
+    padding-bottom:10px;
+  }
+  .form-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:14px;
+  }
+  .form-group{
+    display:flex;
+    flex-direction:column;
+  }
+  .form-group label{
+    font-size:.85rem;
+    margin-bottom:6px;
+    color:var(--gray);
+    font-weight:600;
+  }
+  .form-group input, .form-group select{
+    padding:11px;
+    border:1.5px solid #e2d9f7;
+    border-radius:10px;
+    font-size:.95rem;
+    background:#fafaff;
+  }
+  .form-group input:focus, .form-group select:focus{
+    outline:none;
+    border-color:var(--purple);
+    box-shadow:0 0 0 3px rgba(124,58,237,.15);
+  }
+  .btn{
+    cursor:pointer;
+    border:none;
+    border-radius:10px;
+    padding:11px 20px;
+    font-size:.95rem;
+    font-weight:700;
+    transition:.2s;
+  }
+  .btn-primary{
+    background:linear-gradient(120deg,var(--purple),var(--purple-mid));
+    color:var(--white);
+  }
+  .btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px);}
+  .btn-danger{
+    background:var(--danger);
+    color:var(--white);
+  }
+  .btn-danger:hover{background:#b91c1c;}
+  .btn-secondary{
+    background:var(--purple-soft);
+    color:var(--purple-dark);
+  }
+  .btn-secondary:hover{background:#ddd6fe;}
+  .actions-row{
+    margin-top:16px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .section-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .section-header h2{color:var(--purple-dark);}
+
+  .cards-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
+    gap:20px;
+  }
+  .card{
+    background:var(--white);
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:0 4px 14px rgba(124,58,237,.14);
+    display:flex;
+    flex-direction:column;
+    transition:.2s;
+  }
+  .card:hover{transform:translateY(-4px);box-shadow:0 10px 24px rgba(124,58,237,.22);}
+  .card-title-banner{
+    background:linear-gradient(120deg,var(--purple-dark),var(--purple),var(--purple-mid));
+    color:var(--white);
+    padding:22px 16px;
+    text-align:center;
+    position:relative;
+  }
+  .card-title-banner h3{
+    font-size:1.25rem;
+    font-weight:800;
+    text-shadow:0 2px 6px rgba(0,0,0,.2);
+    line-height:1.4;
+    word-break:break-word;
+  }
+  .card-title-banner::after{
+    content:"📘";
+    display:block;
+    font-size:1.4rem;
+    margin-bottom:8px;
+  }
+  .card-body{
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    flex:1;
+  }
+  .card-section-label{
+    font-size:.78rem;
+    font-weight:700;
+    color:var(--purple);
+    margin-top:6px;
+    text-transform:uppercase;
+    letter-spacing:.3px;
+  }
+  .card-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:.88rem;
+    color:#334155;
+  }
+  .card-row span:first-child{color:var(--gray);}
+  .card-total{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed #ddd6fe;
+    font-weight:800;
+    color:var(--success);
+    display:flex;
+    justify-content:space-between;
+    font-size:1.02rem;
+  }
+  .card-actions{
+    display:flex;
+    gap:8px;
+    margin-top:12px;
+  }
+  .card-actions .btn{
+    flex:1;
+    padding:9px;
+    font-size:.85rem;
+  }
+  .empty-msg{
+    text-align:center;
+    color:var(--gray);
+    padding:34px;
+    background:var(--white);
+    border-radius:14px;
+  }
+
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    top:0;left:0;right:0;bottom:0;
+    background:rgba(59,7,100,.45);
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+    padding:15px;
+  }
+  .modal-overlay.active{display:flex;}
+  .modal-box{
+    background:var(--white);
+    border-radius:16px;
+    padding:22px;
+    max-width:400px;
+    width:100%;
+    box-shadow:0 12px 30px rgba(59,7,100,.3);
+  }
+  .modal-box h2{
+    color:var(--purple-dark);
+    margin-bottom:16px;
+  }
+  .modal-box .form-group{margin-bottom:12px;}
+
+  .install-banner{
+    display:none;
+    max-width:1100px;
+    margin:16px auto 0 auto;
+    background:var(--white);
+    border:1.5px dashed var(--purple);
+    border-radius:12px;
+    padding:14px 16px;
+    text-align:center;
+    color:var(--purple-dark);
+    font-weight:600;
+    font-size:.9rem;
+  }
+  .install-banner button{margin-inline-start:10px;}
+
+  @media (max-width:600px){
+    header h1{font-size:1.3rem;}
+    .stat-card p{font-size:1.4rem;}
+    .tab-btn{font-size:.85rem;padding:12px 4px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📚 إدارة مبيعات الملخصات الدراسية</h1>
+  <p>لوحة تحكم بسيطة لمتابعة أرباحك</p>
+  <div class="tabs">
+    <button class="tab-btn active" id="tabAddBtn" onclick="switchPage('add')">➕ إضافة</button>
+    <button class="tab-btn" id="tabReportBtn" onclick="switchPage('report')">📋 التقرير</button>
+    <button class="tab-btn" id="tabDashboardBtn" onclick="switchPage('dashboard')">💰 الأرباح</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="install-banner" id="installBanner">
+    📲 يمكنك تثبيت هذا التطبيق على جهازك لاستخدامه كتطبيق مستقل
+    <button class="btn btn-primary" id="installBtn">تثبيت الآن</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ==================== صفحة الإضافة ==================== -->
+  <div class="page active" id="page-add">
+    <div class="form-box">
+      <h2>➕ إضافة ملخص جديد</h2>
+      <form id="summaryForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>اسم / عنوان الملخص</label>
+            <input type="text" id="name" required>
+          </div>
+          <div class="form-group">
+            <label>سعر تكلفة النسخة الإلكترونية</label>
+            <input type="number" id="costPriceDigital" min="0" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label>سعر تكلفة النسخة الورقية (طباعة)</label>
+            <input type="number" id="costPricePaper" min="0" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label>سعر البيع الإلكتروني (PDF)</label>
+            <input type="number" id="digitalPrice" min="0" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label>سعر البيع الورقي (مطبوع)</label>
+            <input type="number" id="paperPrice" min="0" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label>عدد النسخ الإلكترونية المباعة</label>
+            <input type="number" id="digitalSold" min="0" value="0" required>
+          </div>
+          <div class="form-group">
+            <label>عدد النسخ الورقية المباعة</label>
+            <input type="number" id="paperSold" min="0" value="0" required>
+          </div>
+        </div>
+        <div class="actions-row">
+          <button type="submit" class="btn btn-primary">💾 حفظ الملخص</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== صفحة التقرير ==================== -->
+  <div class="page" id="page-report">
+    <div class="section-header">
+      <h2>📖 تقرير الملخصات</h2>
+      <button class="btn btn-secondary" id="exportBtn">⬇️ تصدير التقرير</button>
+    </div>
+    <div class="cards-grid" id="cardsContainer"></div>
+    <p class="empty-msg" id="emptyMsg">لا توجد ملخصات مضافة بعد.</p>
+  </div>
+
+  <!-- ==================== صفحة الأرباح ==================== -->
+  <div class="page" id="page-dashboard">
+    <div class="dashboard">
+      <div class="stat-card digital">
+        <h3>💻 إجمالي ربح النسخ الإلكترونية</h3>
+        <p id="totalDigitalProfit">0 ر.س</p>
+      </div>
+      <div class="stat-card paper">
+        <h3>📄 إجمالي ربح النسخ الورقية</h3>
+        <p id="totalPaperProfit">0 ر.س</p>
+      </div>
+      <div class="stat-card grand">
+        <h3>💰 الإجمالي الكلي للربح</h3>
+        <p id="totalProfit">0 ر.س</p>
+      </div>
+    </div>
+    <div class="mini-stats">
+      <div class="mini-stat">
+        <h4>عدد الملخصات المضافة</h4>
+        <span id="totalSummaries">0</span>
+      </div>
+      <div class="mini-stat">
+        <h4>عدد النسخ المباعة (الكل)</h4>
+        <span id="totalCopies">0</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- نافذة تعديل الأعداد -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <h2>✏️ تعديل بيانات الملخص</h2>
+    <input type="hidden" id="editId">
+    <div class="form-group">
+      <label>سعر تكلفة الإلكتروني</label>
+      <input type="number" id="editCostPriceDigital" min="0" step="0.01">
+    </div>
+    <div class="form-group">
+      <label>سعر تكلفة الورقي</label>
+      <input type="number" id="editCostPricePaper" min="0" step="0.01">
+    </div>
+    <div class="form-group">
+      <label>سعر البيع الإلكتروني</label>
+      <input type="number" id="editDigitalPrice" min="0" step="0.01">
+    </div>
+    <div class="form-group">
+      <label>سعر البيع الورقي</label>
+      <input type="number" id="editPaperPrice" min="0" step="0.01">
+    </div>
+    <div class="form-group">
+      <label>عدد النسخ الإلكترونية المباعة</label>
+      <input type="number" id="editDigitalSold" min="0">
+    </div>
+    <div class="form-group">
+      <label>عدد النسخ الورقية المباعة</label>
+      <input type="number" id="editPaperSold" min="0">
+    </div>
+    <div class="actions-row">
+      <button class="btn btn-primary" id="saveEditBtn">حفظ التعديل</button>
+      <button class="btn btn-secondary" id="cancelEditBtn">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'summariesData';
+
+  function loadData() {
+    let raw = [];
+    try {
+      raw = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      if (!Array.isArray(raw)) raw = [];
+    } catch (e) {
+      raw = [];
+    }
+
+    return raw.map(item => {
+      const legacyCost = (typeof item.costPrice === 'number') ? item.costPrice : 0;
+      return {
+        id: item.id ? String(item.id) : Date.now().toString() + Math.random().toString(16).slice(2),
+        name: item.name || 'بدون عنوان',
+        costPriceDigital: Number(item.costPriceDigital ?? legacyCost) || 0,
+        costPricePaper: Number(item.costPricePaper ?? legacyCost) || 0,
+        digitalPrice: Number(item.digitalPrice) || 0,
+        paperPrice: Number(item.paperPrice) || 0,
+        digitalSold: Number(item.digitalSold) || 0,
+        paperSold: Number(item.paperSold) || 0
+      };
+    });
+  }
+
+  let summaries = loadData();
+
+  function persist() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(summaries));
+      return true;
+    } catch (e) {
+      alert('حدث خطأ أثناء حفظ البيانات. تأكد من مساحة التخزين المتاحة في المتصفح.');
+      return false;
+    }
+  }
+
+  const form = document.getElementById('summaryForm');
+  const cardsContainer = document.getElementById('cardsContainer');
+  const emptyMsg = document.getElementById('emptyMsg');
+
+  function switchPage(page) {
+    document.getElementById('page-add').classList.toggle('active', page === 'add');
+    document.getElementById('page-report').classList.toggle('active', page === 'report');
+    document.getElementById('page-dashboard').classList.toggle('active', page === 'dashboard');
+    document.getElementById('tabAddBtn').classList.toggle('active', page === 'add');
+    document.getElementById('tabReportBtn').classList.toggle('active', page === 'report');
+    document.getElementById('tabDashboardBtn').classList.toggle('active', page === 'dashboard');
+    if (page === 'report') renderCards();
+    if (page === 'dashboard') renderDashboard();
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const newItem = {
+      id: Date.now().toString() + Math.random().toString(16).slice(2),
+      name: document.getElementById('name').value.trim() || 'بدون عنوان',
+      costPriceDigital: parseFloat(document.getElementById('costPriceDigital').value) || 0,
+      costPricePaper: parseFloat(document.getElementById('costPricePaper').value) || 0,
+      digitalPrice: parseFloat(document.getElementById('digitalPrice').value) || 0,
+      paperPrice: parseFloat(document.getElementById('paperPrice').value) || 0,
+      digitalSold: parseInt(document.getElementById('digitalSold').value) || 0,
+      paperSold: parseInt(document.getElementById('paperSold').value) || 0
+    };
+
+    summaries.push(newItem);
+    if (persist()) {
+      form.reset();
+      switchPage('report');
+    }
+  });
+
+  function deleteSummary(id) {
+    if (confirm('هل أنت متأكد من حذف هذا الملخص؟')) {
+      summaries = summaries.filter(s => s.id !== id);
+      persist();
+      renderCards();
+      renderDashboard();
+    }
+  }
+
+  const editModal = document.getElementById('editModal');
+  function openEdit(id) {
+    const item = summaries.find(s => s.id === id);
+    if (!item) return;
+    document.getElementById('editId').value = item.id;
+    document.getElementById('editCostPriceDigital').value = item.costPriceDigital;
+    document.getElementById('editCostPricePaper').value = item.costPricePaper;
+    document.getElementById('editDigitalPrice').value = item.digitalPrice;
+    document.getElementById('editPaperPrice').value = item.paperPrice;
+    document.getElementById('editDigitalSold').value = item.digitalSold;
+    document.getElementById('editPaperSold').value = item.paperSold;
+    editModal.classList.add('active');
+  }
+
+  document.getElementById('cancelEditBtn').addEventListener('click', () => {
+    editModal.classList.remove('active');
+  });
+
+  document.getElementById('saveEditBtn').addEventListener('click', () => {
+    const id = document.getElementById('editId').value;
+    const item = summaries.find(s => s.id === id);
+    if (!item) return;
+
+    item.costPriceDigital = parseFloat(document.getElementById('editCostPriceDigital').value) || 0;
+    item.costPricePaper = parseFloat(document.getElementById('editCostPricePaper').value) || 0;
+    item.digitalPrice = parseFloat(document.getElementById('editDigitalPrice').value) || 0;
+    item.paperPrice = parseFloat(document.getElementById('editPaperPrice').value) || 0;
+    item.digitalSold = parseInt(document.getElementById('editDigitalSold').value) || 0;
+    item.paperSold = parseInt(document.getElementById('editPaperSold').value) || 0;
+
+    if (persist()) {
+      renderCards();
+      renderDashboard();
+      editModal.classList.remove('active');
+    }
+  });
+
+  function calcProfit(item) {
+    const digitalProfit = (item.digitalPrice - item.costPriceDigital) * item.digitalSold;
+    const paperProfit = (item.paperPrice - item.costPricePaper) * item.paperSold;
+    return { digitalProfit, paperProfit, total: digitalProfit + paperProfit };
+  }
+
+  function renderCards() {
+    cardsContainer.innerHTML = '';
+
+    if (summaries.length === 0) {
+      emptyMsg.style.display = 'block';
+      return;
+    }
+    emptyMsg.style.display = 'none';
+
+    summaries.forEach(item => {
+      const p = calcProfit(item);
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      card.innerHTML = `
+        <div class="card-title-banner">
+          <h3>${item.name}</h3>
+        </div>
+        <div class="card-body">
+          <div class="card-section-label">النسخة الإلكترونية</div>
+          <div class="card-row"><span>سعر البيع</span><span>${item.digitalPrice.toFixed(2)} ر.س</span></div>
+          <div class="card-row"><span>سعر التكلفة</span><span>${item.costPriceDigital.toFixed(2)} ر.س</span></div>
+          <div class="card-row"><span>عدد المبيعات</span><span>${item.digitalSold}</span></div>
+          <div class="card-row"><span>الربح</span><span>${p.digitalProfit.toFixed(2)} ر.س</span></div>
+
+          <div class="card-section-label">النسخة الورقية</div>
+          <div class="card-row"><span>سعر البيع</span><span>${item.paperPrice.toFixed(2)} ر.س</span></div>
+          <div class="card-row"><span>سعر التكلفة</span><span>${item.costPricePaper.toFixed(2)} ر.س</span></div>
+          <div class="card-row"><span>عدد المبيعات</span><span>${item.paperSold}</span></div>
+          <div class="card-row"><span>الربح</span><span>${p.paperProfit.toFixed(2)} ر.س</span></div>
+
+          <div class="card-total"><span>إجمالي الربح</span><span>${p.total.toFixed(2)} ر.س</span></div>
+          <div class="card-actions">
+            <button class="btn btn-primary" onclick="openEdit('${item.id}')">تعديل</button>
+            <button class="btn btn-danger" onclick="deleteSummary('${item.id}')">حذف</button>
+          </div>
+        </div>
+      `;
+      cardsContainer.appendChild(card);
+    });
+  }
+
+  function renderDashboard() {
+    let totalDigitalProfit = 0;
+    let totalPaperProfit = 0;
+    let totalCopies = 0;
+
+    summaries.forEach(item => {
+      const p = calcProfit(item);
+      totalDigitalProfit += p.digitalProfit;
+      totalPaperProfit += p.paperProfit;
+      totalCopies += item.digitalSold + item.paperSold;
+    });
+
+    const grandTotal = totalDigitalProfit + totalPaperProfit;
+
+    document.getElementById('totalDigitalProfit').textContent = totalDigitalProfit.toFixed(2) + ' ر.س';
+    document.getElementById('totalPaperProfit').textContent = totalPaperProfit.toFixed(2) + ' ر.س';
+    document.getElementById('totalProfit').textContent = grandTotal.toFixed(2) + ' ر.س';
+    document.getElementById('totalSummaries').textContent = summaries.length;
+    document.getElementById('totalCopies').textContent = totalCopies;
+  }
+
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    let report = 'تقرير أرباح الملخصات الدراسية\n';
+    report += '================================\n\n';
+
+    let totalDigitalProfit = 0;
+    let totalPaperProfit = 0;
+    let totalCopies = 0;
+
+    summaries.forEach((item, index) => {
+      const p = calcProfit(item);
+      totalDigitalProfit += p.digitalProfit;
+      totalPaperProfit += p.paperProfit;
+      totalCopies += item.digitalSold + item.paperSold;
+
+      report += `${index + 1}. ${item.name}\n`;
+      report += `   - إلكتروني: بيع ${item.digitalPrice.toFixed(2)} ر.س | تكلفة ${item.costPriceDigital.toFixed(2)} ر.س | مباع ${item.digitalSold} | ربح ${p.digitalProfit.toFixed(2)} ر.س\n`;
+      report += `   - ورقي: بيع ${item.paperPrice.toFixed(2)} ر.س | تكلفة ${item.costPricePaper.toFixed(2)} ر.س | مباع ${item.paperSold} | ربح ${p.paperProfit.toFixed(2)} ر.س\n`;
+      report += `   - إجمالي ربح الملخص: ${p.total.toFixed(2)} ر.س\n\n`;
+    });
+
+    const grandTotal = totalDigitalProfit + totalPaperProfit;
+
+    report += '================================\n';
+    report += `إجمالي عدد الملخصات: ${summaries.length}\n`;
+    report += `إجمالي عدد النسخ المباعة: ${totalCopies}\n`;
+    report += `إجمالي ربح الإلكتروني: ${totalDigitalProfit.toFixed(2)} ر.س\n`;
+    report += `إجمالي ربح الورقي: ${totalPaperProfit.toFixed(2)} ر.س\n`;
+    report += `الإجمالي الكلي للربح: ${grandTotal.toFixed(2)} ر.س\n`;
+
+    const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'تقرير_الأرباح.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // تسجيل service worker لتفعيل خاصية التثبيت كتطبيق (يعمل فقط عند الاستضافة على خادم https)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+
+  // زر تثبيت التطبيق
+  let deferredPrompt = null;
+  const installBanner = document.getElementById('installBanner');
+  const installBtn = document.getElementById('installBtn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBanner.style.display = 'block';
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBanner.style.display = 'none';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    installBanner.style.display = 'none';
+  });
+
+  persist();
+  renderCards();
+  renderDashboard();
+</script>
+
+</body>
+</html>
